@@ -7,7 +7,7 @@ const app = express();
 const server = createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: "http://localhost:5173", // Vite dev server
+    origin: ["http://localhost:5173", "http://192.168.68.103:5173"], // Vite dev server (local + network)
     methods: ["GET", "POST"]
   }
 });

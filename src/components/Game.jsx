@@ -86,8 +86,12 @@ function Game() {
 
     setSessionId(sessionId)
 
-    // Initialize socket connection (Vite will proxy to port 3001)
-    socket = io('http://localhost:3001', {
+    // Initialize socket connection - dynamically use current host
+    const socketUrl = window.location.hostname === 'localhost' 
+      ? 'http://localhost:3001'
+      : `http://${window.location.hostname}:3001`
+    
+    socket = io(socketUrl, {
       transports: ['websocket', 'polling'],
     })
 

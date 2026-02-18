@@ -17,7 +17,10 @@ function Lobby() {
   useEffect(() => {
     // Clear any existing socket connection
     return () => {
-      const socket = io('http://localhost:3001')
+      const socketUrl = window.location.hostname === 'localhost' 
+        ? 'http://localhost:3001'
+        : `http://${window.location.hostname}:3001`
+      const socket = io(socketUrl)
       socket.disconnect()
     }
   }, [])
@@ -31,7 +34,10 @@ function Lobby() {
     }
     
     try {
-      const socket = io('http://localhost:3001')
+      const socketUrl = window.location.hostname === 'localhost' 
+        ? 'http://localhost:3001'
+        : `http://${window.location.hostname}:3001`
+      const socket = io(socketUrl)
       
       socket.on('connect', () => {
         socket.emit('createSession')
