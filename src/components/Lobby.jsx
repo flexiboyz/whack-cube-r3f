@@ -10,12 +10,12 @@ function Lobby() {
   
   const [name, setName] = useState(playerName)
   const [joinCode, setJoinCode] = useState('')
+  const [isQuickMatching, setIsQuickMatching] = useState(false)
   const [isCreating, setIsCreating] = useState(false)
   const [isJoining, setIsJoining] = useState(false)
   const [error, setError] = useState('')
 
   useEffect(() => {
-    // Clear any existing socket connection
     return () => {
       const socketUrl = window.location.hostname === 'localhost' 
         ? 'http://localhost:3001'
@@ -24,6 +24,48 @@ function Lobby() {
       socket.disconnect()
     }
   }, [])
+
+  const handleQuickMatch = () => {
+    setIsQuickMatching(true)
+    setError('')
+    
+    const finalName = name.trim() || 'Player'
+    setPlayerName(finalName)
+    
+    try {
+      const socketUrl = window.location.hostname === 'localhost' 
+        ? 'http://localhost:3001'
+        : `http://${window.location.hostname}:3001`
+      const socket = io(socketUrl)
+      
+      socket.on('connect', () => {
+        socket.emit('quickMatch', { playerName: finalName })
+        
+        socket.once('sessionJoined', ({ sessionId }) => {
+          console.log('Quick matched to session:', sessionId)
+          setSessionId(sessionId)
+          socket.disconnect()
+          navigate(`/game?session=${sessionId}`)
+        })
+      })
+      
+      socket.on('error', (err) => {
+        setIsQuickMatching(false)
+        setError(err.message || 'Failed to find match')
+        socket.disconnect()
+      })
+      
+      setTimeout(() => {
+        setIsQuickMatching(false)
+        setError('Connection timeout. Please try again.')
+      }, 5000)
+      
+    } catch (err) {
+      setIsQuickMatching(false)
+      setError('Failed to connect. Please try again.')
+      console.error(err)
+    }
+  }
 
   const handleCreateGame = async () => {
     setIsCreating(true)
@@ -101,11 +143,29 @@ function Lobby() {
           
           <div className="button-group">
             <button
-              className="btn btn-primary"
-              onClick={handleCreateGame}
-              disabled={isCreating || isJoining}
+              className="btn btn-primary btn-large"
+              onClick={handleQuickMatch}
+              disabled={isQuickMatching || isCreating || isJoining}
             >
-              {isCreating ? 'Creating...' : '🎮 Create New Game'}
+              {isQuickMatching ? '🔍 Finding Match...' : '⚡ Quick Match'}
+            </button>
+          </div>
+
+          <div className="quick-match-info">
+            Auto-join a waiting game or create new one
+          </div>
+          
+          <div className="divider">
+            <span>OR</span>
+          </div>
+          
+          <div className="button-group">
+            <button
+              className="btn btn-secondary"
+              onClick={handleCreateGame}
+              disabled={isCreating || isJoining || isQuickMatching}
+            >
+              {isCreating ? 'Creating...' : '🎮 Create Private Game'}
             </button>
           </div>
           
@@ -114,7 +174,7 @@ function Lobby() {
           </div>
           
           <div className="form-group">
-            <label>Join Existing Game</label>
+            <label>Join Private Game</label>
             <input
               type="text"
               value={joinCode}
@@ -126,11 +186,11 @@ function Lobby() {
           
           <div className="button-group">
             <button
-              className="btn btn-secondary"
+              className="btn btn-tertiary"
               onClick={handleJoinGame}
-              disabled={isCreating || isJoining}
+              disabled={isCreating || isJoining || isQuickMatching}
             >
-              {isJoining ? 'Joining...' : '🚪 Join Game'}
+              {isJoining ? 'Joining...' : '🚪 Join with Code'}
             </button>
           </div>
           
@@ -143,7 +203,8 @@ function Lobby() {
             <li>🟢 Hit <strong>GREEN</strong> cubes to score points</li>
             <li>🔴 Avoid <strong>RED</strong> cubes (3 hits = game over)</li>
             <li>🖱️ Hold mouse/touch to raise hammer, release to drop</li>
-            <li>🎯 Hammer only moves on Y-axis for precision</li>
+            <li>👥 Need at least <strong>2 players</strong> to start</li>
+            <li>👑 First player is host and starts the game</li>
           </ul>
         </div>
       </div>

@@ -6,6 +6,7 @@ import { useControls } from 'leva'
 import useGameStore from '../store/gameStore'
 import Scene from './Scene'
 import HUD from './HUD'
+import WaitingRoom from './WaitingRoom'
 import './Game.css'
 
 let socket = null
@@ -18,10 +19,17 @@ function Game() {
   const {
     setSessionId,
     setMySocketId,
+    setIsHost,
+    setSessionStatus,
+    setMinPlayers,
     playerName,
     updateAllPlayers,
     setCurrentCube,
     setCubeIsUp,
+    sessionStatus,
+    isHost,
+    allPlayers,
+    minPlayers,
     params,
     updateParams,
   } = useGameStore()
@@ -78,6 +86,13 @@ function Game() {
     },
   })
 
+  const handleStartGame = () => {
+    if (socket && isHost) {
+      console.log('Host starting game...')
+      socket.emit('startGame')
+    }
+  }
+
   useEffect(() => {
     if (!sessionId) {
       navigate('/')
@@ -106,15 +121,35 @@ function Game() {
       setIsConnected(false)
     })
 
-    socket.on('sessionJoined', ({ socketId, players }) => {
-      console.log('Joined session:', socketId, 'Players:', players)
+    socket.on('sessionJoined', ({ socketId, status, players, hostId, minPlayers: min }) => {
+      console.log('Joined session:', socketId, 'Status:', status, 'Players:', players)
       setMySocketId(socketId)
+      setIsHost(socketId === hostId)
+      setSessionStatus(status)
+      setMinPlayers(min)
       updateAllPlayers(players)
     })
 
     socket.on('playersUpdate', (players) => {
       console.log('Players update:', players)
       updateAllPlayers(players)
+    })
+
+    socket.on('hostChanged', ({ newHostId }) => {
+      console.log('New host:', newHostId)
+      const myId = useGameStore.getState().mySocketId
+      setIsHost(myId === newHostId)
+    })
+
+    socket.on('gameStarted', ({ status }) => {
+      console.log('Game started!')
+      setSessionStatus(status)
+    })
+
+    socket.on('gamePaused', ({ reason, minPlayers: min }) => {
+      console.log('Game paused:', reason)
+      setSessionStatus('waiting')
+      alert(`Game paused: ${reason}. Need at least ${min} players.`)
     })
 
     socket.on('cubeSpawned', (cubeData) => {
@@ -147,9 +182,21 @@ function Game() {
     return null
   }
 
+  const showWaitingRoom = sessionStatus === 'waiting'
+
   return (
     <div className="game-container">
       <HUD socket={socket} />
+      
+      {showWaitingRoom && (
+        <WaitingRoom
+          isHost={isHost}
+          playerCount={allPlayers.length}
+          minPlayers={minPlayers}
+          onStartGame={handleStartGame}
+        />
+      )}
+      
       <Canvas
         shadows
         camera={{ position: [0, 2.5, 8], fov: 75 }}
@@ -159,6 +206,7 @@ function Game() {
       >
         <Scene socket={socket} />
       </Canvas>
+      
       {!isConnected && (
         <div className="connection-status">Connecting...</div>
       )}

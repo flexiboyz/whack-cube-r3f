@@ -93,6 +93,18 @@
   box-shadow: 0 5px 15px rgba(76, 175, 80, 0.4);
 }
 
+.btn-primary.btn-large {
+  padding: 20px 40px;
+  font-size: 22px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+}
+
+.btn-primary.btn-large:hover:not(:disabled) {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 25px rgba(102, 126, 234, 0.6);
+}
+
 .btn-secondary {
   background: #2196F3;
   color: white;
@@ -102,6 +114,25 @@
   background: #0b7dda;
   transform: translateY(-2px);
   box-shadow: 0 5px 15px rgba(33, 150, 243, 0.4);
+}
+
+.btn-tertiary {
+  background: #FFA726;
+  color: white;
+}
+
+.btn-tertiary:hover:not(:disabled) {
+  background: #FB8C00;
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(255, 167, 38, 0.4);
+}
+
+.quick-match-info {
+  text-align: center;
+  font-size: 13px;
+  color: #999;
+  margin-top: -10px;
+  margin-bottom: 15px;
 }
 
 .divider {

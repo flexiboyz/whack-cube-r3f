@@ -9,6 +9,7 @@ function Scene({ socket }) {
     currentCube,
     setCurrentCube,
     setCubeIsUp,
+    sessionStatus,
     params,
   } = useGameStore()
 
@@ -57,7 +58,9 @@ function Scene({ socket }) {
       {/* 3D Objects */}
       <Ground />
       <Hammer socket={socket} />
-      {currentCube && <Cube cubeData={currentCube} socket={socket} />}
+      {currentCube && sessionStatus === 'active' && (
+        <Cube cubeData={currentCube} socket={socket} />
+      )}
     </>
   )
 }

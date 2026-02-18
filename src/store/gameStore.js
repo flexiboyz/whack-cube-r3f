@@ -12,6 +12,9 @@ const useGameStore = create((set, get) => ({
   mySocketId: null,
   allPlayers: [],
   playerName: localStorage.getItem('playerName') || 'Player',
+  sessionStatus: 'waiting', // 'waiting' | 'active' | 'finished'
+  isHost: false,
+  minPlayers: 2,
   
   // Cube state
   currentCube: null,
@@ -66,6 +69,10 @@ const useGameStore = create((set, get) => ({
   setHammerRaised: (raised) => set({ hammerRaised: raised }),
   
   updateAllPlayers: (players) => set({ allPlayers: players }),
+  
+  setSessionStatus: (status) => set({ sessionStatus: status }),
+  setIsHost: (isHost) => set({ isHost }),
+  setMinPlayers: (min) => set({ minPlayers: min }),
   
   updateParams: (newParams) => set((state) => ({
     params: { ...state.params, ...newParams }
